@@ -43,7 +43,7 @@ function Treeview(body_element) {
 
 
 	this.onfilter = function(value) {
-		this.filter = value;
+		this.filter = value.toLowerCase();
 		this.redraw();
 	}
 
@@ -142,7 +142,7 @@ function Treeview(body_element) {
 	function passes_filter(objPtr, is_dir, caption) {
 		if ( is_dir ) return true;
 		if ( ! objPtr.filter ) return true;
-		if ( caption.search(objPtr.filter) != -1 ) return true;
+		if ( caption.toLowerCase().search(objPtr.filter) != -1 ) return true;
 		return false;
 	}
 
