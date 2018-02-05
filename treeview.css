@@ -1,38 +1,41 @@
 
 /* The container element of the tree */
-.treeview-container * {
+.tv-container {
+    overflow: auto;
+    /* Add custom style here */
+}
+
+/* Each line in the tree */
+.tv-line {
     cursor: default;
     user-select: none;
-    white-space: pre;
     font-family: "Lucida Console", Monaco, monospace;
+    white-space: pre;
     line-height: normal;
     margin: 0;
     padding: 0;
     /* Add custom style here */
 }
 
-/* Each line in the tree */
-.treeview-line {
+/* Lines which are folders, collapsible */
+.tv-folder {
+    font-weight: bold;
     /* Add custom style here */
 }
 
-/* Lines which are collapsible */
-.treeview-folder {
+/* Lines which are empty folders, not colapsible */
+.tv-empty {
     /* Add custom style here */
 }
 
-/* Lines which are collapsible but empty */
-.treeview-folder-empty {
+/* Lines which are files */
+.tv-file {
     /* Add custom style here */
 }
 
-/* All lines other than folders */
-.treeview-file {
-    /* Add custom style here */
-}
-
-/* Only lines which are selected */
-.treeview-file-marked {
+/* Selected lines */
+.tv-marked {
+    background-color: #fff9db;
     /* Add custom style here */
 }
 

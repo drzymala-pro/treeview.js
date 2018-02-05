@@ -23,15 +23,15 @@ function Treeview(body_element) {
 
 
 	const SYMB = {
-		EXP: "⊞", // "&#8862;" /* ⊞ */,
-		FLD: "⊟", // "&#8863;" /* ⊟ */,
-		EMP: "⊡", // "&#8865;" /* ⊡ */,
-		END: "╴", // "&#9588;" /* ╴ */,
-		BAR: "│", // "&#9474;" /* │ */,
-		WHI: " ", //  "&#160;" /*   */,
-		ELB: "╰", // "&#9584;" /* ╰ */,
-		TEE: "├", // "&#9500;" /* ├ */,
-		NWL: '\n'
+		/* Not using HTML entities because of createTextNode() */
+		EXP: "⊞",
+		FLD: "⊟",
+		EMP: "⊡",
+		END: "╴",
+		BAR: "│",
+		WHI: " ",
+		ELB: "╰",
+		TEE: "├"
 	}
 
 
@@ -98,24 +98,21 @@ function Treeview(body_element) {
 
 
 	function make_div(is_dir, is_marked, is_empty, text) {
-		var line = document.createElement("div");
 		var text = document.createTextNode(text);
-		line.classList.add("treeview-line");
+		var line = document.createElement("p");
+		line.appendChild(text);
+		line.classList.add("tv-line");
 		if ( is_dir ) {
-			line.classList.add("treeview-folder");
+			line.classList.add("tv-folder");
 			if ( is_empty ) {
-				line.classList.add("treeview-folder-empty");
+				line.classList.add("tv-empty");
 			}
 		} else {
-			line.classList.add("treeview-file");
+			line.classList.add("tv-file");
 			if ( is_marked ) {
-				line.classList.add("treeview-file-marked");
-				mark = document.createElement("mark");
-				mark.appendChild(text);
-				text = mark;
+				line.classList.add("tv-marked");
 			}
 		}
-		line.appendChild(text);
 		return line;
 	}
 
@@ -130,7 +127,7 @@ function Treeview(body_element) {
 
 
 	function append_children(objPtr, doc, node, prefix) {
-		doc.classList.add("treeview-container");
+		doc.classList.add("tv-container");
 		var child_count = node.list.length;
 		var child_index = 0;
 		for ( child_index = 0; child_index < child_count; child_index++ ) {
