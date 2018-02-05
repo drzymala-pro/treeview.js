@@ -1,0 +1,38 @@
+
+/* The container element of the tree */
+.treeview-container * {
+    cursor: default;
+    user-select: none;
+    white-space: pre;
+    font-family: "Lucida Console", Monaco, monospace;
+    line-height: normal;
+    margin: 0;
+    padding: 0;
+    /* Add custom style here */
+}
+
+/* Each line in the tree */
+.treeview-line {
+    /* Add custom style here */
+}
+
+/* Lines which are collapsible */
+.treeview-folder {
+    /* Add custom style here */
+}
+
+/* Lines which are collapsible but empty */
+.treeview-folder-empty {
+    /* Add custom style here */
+}
+
+/* All lines other than folders */
+.treeview-file {
+    /* Add custom style here */
+}
+
+/* Only lines which are selected */
+.treeview-file-marked {
+    /* Add custom style here */
+}
+
