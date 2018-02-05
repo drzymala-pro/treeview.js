@@ -1,17 +1,32 @@
 
 /* The container element of the tree */
 .tv-container {
+    font-family: "Lucida Console", Monaco, monospace;
+    line-height: normal;
     overflow: auto;
     /* Add custom style here */
+}
+
+.tv-filter {
+    width: 100%;
+    /*border: 2px solid #333;*/
+    border: none;
+    background-color: #ececec;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-weight: bold;
+}
+
+.tv-filter:focus {
+    outline: none;
+    /*border: 2px solid #333;*/
 }
 
 /* Each line in the tree */
 .tv-line {
     cursor: default;
     user-select: none;
-    font-family: "Lucida Console", Monaco, monospace;
     white-space: pre;
-    line-height: normal;
     margin: 0;
     padding: 0;
     /* Add custom style here */
@@ -35,7 +50,7 @@
 
 /* Selected lines */
 .tv-marked {
-    background-color: #fff9db;
+    background-color: #f8ffb2;
     /* Add custom style here */
 }
 

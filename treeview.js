@@ -1,8 +1,28 @@
 
+const SYMB = {
+	/* Not using HTML entities because of createTextNode() */
+	EXP: "⊞",
+	FLD: "⊟",
+	EMP: "⊡",
+	END: "╴",
+	BAR: "│",
+	WHI: " ",
+	ELB: "╰",
+	TEE: "├"
+}
+
+
 function Treeview(body_element) {
 
+	var objPtr = this;
+	this.filter = "";
 	this.data = [];
 	this.body_element = body_element;
+	this.filter_box = document.createElement("input");
+	this.filter_box.classList.add("tv-filter");
+	this.filter_box.placeholder = "Add filter...";
+	this.filter_box.oninput = function(e){ objPtr.onfilter(this.value); };
+	this.body_element.appendChild(this.filter_box);
 
 
 	this.onchange = function(new_data) {
@@ -22,16 +42,9 @@ function Treeview(body_element) {
 	}
 
 
-	const SYMB = {
-		/* Not using HTML entities because of createTextNode() */
-		EXP: "⊞",
-		FLD: "⊟",
-		EMP: "⊡",
-		END: "╴",
-		BAR: "│",
-		WHI: " ",
-		ELB: "╰",
-		TEE: "├"
+	this.onfilter = function(value) {
+		this.filter = value;
+		this.redraw();
 	}
 
 
@@ -126,6 +139,14 @@ function Treeview(body_element) {
 	}
 
 
+	function passes_filter(objPtr, is_dir, caption) {
+		if ( is_dir ) return true;
+		if ( ! objPtr.filter ) return true;
+		if ( caption.search(objPtr.filter) != -1 ) return true;
+		return false;
+	}
+
+
 	function append_children(objPtr, doc, node, prefix) {
 		doc.classList.add("tv-container");
 		var child_count = node.list.length;
@@ -139,7 +160,9 @@ function Treeview(body_element) {
 			var is_folded = is_node_folded(child);
 			var is_marked = is_node_marked(child);
 			var new_prefix = prefix + (is_last ? SYMB.ELB : SYMB.TEE);
-			doc.appendChild(create_line(objPtr, child, is_dir, is_empty, is_folded, is_marked, new_prefix, caption));
+			if ( passes_filter(objPtr, is_dir, caption) ) {
+				doc.appendChild(create_line(objPtr, child, is_dir, is_empty, is_folded, is_marked, new_prefix, caption));
+			}
 			if ( is_dir && !is_empty && !is_folded ) {
 				new_prefix = prefix + (is_last ? SYMB.WHI : SYMB.BAR);
 				append_children(objPtr, doc, child, new_prefix);
@@ -149,7 +172,8 @@ function Treeview(body_element) {
 
 
 	function rebuild_tree(objPtr, doc, nodes) {
-		while ( doc.lastChild ) doc.removeChild(doc.lastChild); /* Clearing doc */
+		/* Remove all elements but first - the filter box */
+		while ( doc.lastChild && ( doc.lastChild !== objPtr.filter_box ) ) doc.removeChild(doc.lastChild);
 		var prefix = "";
 		for ( var i=0; i<nodes.length; i++ ) {
 			var node = nodes[i];
@@ -158,7 +182,9 @@ function Treeview(body_element) {
 			var is_empty = is_node_empty(node);
 			var is_folded = is_node_folded(node);
 			var is_marked = is_node_marked(node);
-			doc.appendChild(create_line(objPtr, node, is_dir, is_empty, is_folded, is_marked, prefix, caption));
+			if ( passes_filter(objPtr, is_dir, caption) ) {
+				doc.appendChild(create_line(objPtr, node, is_dir, is_empty, is_folded, is_marked, prefix, caption));
+			}
 			if ( is_dir && !is_empty && !is_folded ) {
 				append_children(objPtr, doc, node, prefix);
 			}
