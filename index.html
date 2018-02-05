@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>treeview.js - Monospace text tree for directories and files.</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container px-3 my-5">
+      <h1 id="treeviewjs">treeview.js</h1>
+      <p>Monospace text tree for directories and files written in javascript.</p>
+      <div class="row">
+        <div class="col">
+          <h3>Example:</h3>
+          <div id="tree-element"></div>
+        </div>
+        <div class="col">
+          <h3>Underlying data:</h3>
+          <div id="data-element"></div>
+        </div>
+      </div>
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        <a href="https://github.com/drzymala-pro/treeview.js/edit/master/index.html">Improve this page</a>.
+      </div>
+    </div>
+    <script src="treeview.js"></script>
+    <script type="text/javascript">
+      var nodelist = [
+        {
+          "name": "DirectoryOne",
+          "file": false,
+          "fold": true,
+          "list": [
+            {"name": "SYSLOG_001.LOG", "file": true, "mark": false},
+            {"name": "SYSLOG_002.LOG", "file": true, "mark": false},
+            {"name": "SYSLOG_003.LOG", "file": true, "mark": false},
+            {"name": "SYSLOG_004.LOG", "file": true, "mark": false},
+            {"name": "SYSLOG_005.LOG", "file": true, "mark": false},
+          ]
+        },
+        {
+          "name": "DirectoryTwo",
+          "file": false,
+          "fold": false,
+          "list": [
+            {
+              "name": "Subdirectory",
+              "file": false,
+              "fold": false,
+              "list": [
+                {
+                  "name": "More Deep",
+                  "file": false,
+                  "fold": false,
+                  "list": [
+                    {
+                      "name": "Even Deeper",
+                      "file": false,
+                      "fold": false,
+                      "list": [
+                        {
+                          "name": "The Deepest",
+                          "file": false,
+                          "fold": false,
+                          "list": [
+                            {"name": "very_deep_file_1.LOG", "file": true, "mark": true},
+                            {"name": "very_deep_file_2.LOG", "file": true, "mark": false},
+                            {"name": "very_deep_file_3.LOG", "file": true, "mark": true}
+                          ]
+                        },
+                      ]
+                    },
+                  ]
+                },
+                {"name": "SYSLOG_201.LOG", "file": true, "mark": true},
+                {"name": "SYSLOG_202.LOG", "file": true, "mark": false},
+                {"name": "SYSLOG_203.LOG", "file": true, "mark": true}
+              ]
+            },
+            {
+              "name": "EmptySubdirectory",
+              "file": false,
+              "fold": false,
+              "list": []
+            },
+            {"name": "SYSLOG_501.LOG", "file": true, "mark": false,},
+            {"name": "SYSLOG_502.LOG", "file": true, "mark": false,},
+            {"name": "SYSLOG_503.LOG", "file": true, "mark": false,},
+            {"name": "SYSLOG_504.LOG", "file": true, "mark": false,},
+            {"name": "SYSLOG_505.LOG", "file": true, "mark": false,},
+          ]
+        }
+      ]
+      window.onload = function() {
+        tree_element = document.getElementById("tree-element");
+        data_element = document.getElementById("data-element");
+        treeview = new Treeview(tree_element);
+        treeview.setData(nodelist);
+        treeview.onchange = function(data) {
+          data_element.innerHTML = "<pre>" + data + "</pre>";
+        }
+      }
+    </script>
+  </body>
+</html>
