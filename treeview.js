@@ -1,193 +1,220 @@
 
-const SYMB = {
+const SYMBOL = {
 	/* Not using HTML entities because of createTextNode() */
-	EXP: "⊞",
-	FLD: "⊟",
-	EMP: "⊡",
-	END: "╴",
-	BAR: "│",
-	WHI: " ",
-	ELB: "╰",
-	TEE: "├"
+	EXPAND: "⊞",
+	FOLD:   "⊟",
+	EMPTY:  "⊡",
+	LEAF:   "╴",
+	BAR:    "│",
+	SPACE:  " ",
+	ELBOW:  "╰",
+	TEE:    "├"
 }
 
 
 function Treeview(body_element) {
 
-	var objPtr = this;
+	var tv = this; /* Treeview pointer */
 	this.filter = "";
-	this.data = [];
+	this.tree_model = null;
 	this.body_element = body_element;
+	this.body_element.classList.add("tv-container");
 	this.filter_box = document.createElement("input");
 	this.filter_box.classList.add("tv-filter");
 	this.filter_box.placeholder = "Add filter...";
-	this.filter_box.oninput = function(e){ objPtr.onfilter(this.value); };
+	this.filter_box.oninput = function(e){ tv.onfilter(this.value); };
 	this.body_element.appendChild(this.filter_box);
-
+	this.tree_box = document.createElement("div");
+	this.body_element.appendChild(this.tree_box);
 
 	this.onchange = function(new_data) {
 		/* This function will be provided by user */
 	}
 
-
 	this.setData = function(data) {
-		this.data = data;
+		this.tree_model = data;
 		this.redraw();
 	}
-
 
 	this.redraw = function() {
-		rebuild_tree(this, this.body_element, this.data);
-		this.onchange(this.data);
+		var tv = this;
+		var div = this.tree_box;
+		var node = this.tree_model;
+		var filter = this.filter;
+		rebuild_tree(tv, div, node, filter);
+		/* Run client callback */
+		this.onchange(node);
 	}
-
 
 	this.onfilter = function(value) {
-		this.filter = value.toLowerCase();
+		this.filter = value;
 		this.redraw();
 	}
+}
 
 
-	function is_node_a_dir(node) {
-		return node.file === false;
-	}
+function node_is_leaf(node) { return node && node.name && ( ! node.list ); }
+function get_node_name(node) { return node && node.name ? node.name : "<undefined>"; }
+function node_is_marked(node) { return node && node.mark; }
+function node_is_folder(node) { return node && node.list ? true : false; }
+function node_is_folded(node) { return node && node.fold; }
+function node_is_parent(node) { return node && node.list && (node.list.length > 0); }
 
 
-	function is_node_empty(node) {
-		return node.list ? node.list.length == 0 : true;
-	}
-
-
-	function is_node_folded(node) {
-		return node.fold;
-	}
-
-
-	function is_node_marked(node) {
-		return node.mark;
-	}
-
-
-	function mousemove(objPtr, node, event) {
-		if ( event.buttons == 1 ) {
-			var x = event.movementX;
-			var y = event.movementY;
-			/* Was it a swipe move? i.e. movement more than 1 pixels.. */
-			if ( Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2) ) > 1 ) {
-				if ( ! is_node_a_dir(node) ) {
-					node.mark = event.ctrlKey ? false : true;
-					objPtr.redraw();
-				}
-			}
+function get_subnode(node, idx) {
+	if ( node.list ) {
+		if ( -1 < idx < node.list.length ) {
+			return node.list[idx];
 		}
 	}
+	return null;
+}
 
 
-	function mouseclick(objPtr, node, event) {
-		if ( is_node_a_dir(node) ) {
-			if ( ! is_node_empty(node) ) {
-				node.fold = ! node.fold;
-				objPtr.redraw();
-			}
-		} else {
-			node.mark = ! node.mark;
-			objPtr.redraw();
-		}
-	}
-
-
-	function get_line_symbol(is_dir, is_empty, is_folded) {
-		if ( is_dir )
-			if ( is_empty )
-				return SYMB.EMP;
-			else
-				if ( is_folded )
-					return SYMB.EXP;
-				else
-					return SYMB.FLD;
-		else
-			return SYMB.END;
-	}
-
-
-	function make_div(is_dir, is_marked, is_empty, text) {
-		var text = document.createTextNode(text);
-		var line = document.createElement("p");
-		line.appendChild(text);
-		line.classList.add("tv-line");
-		if ( is_dir ) {
-			line.classList.add("tv-folder");
-			if ( is_empty ) {
-				line.classList.add("tv-empty");
-			}
-		} else {
-			line.classList.add("tv-file");
-			if ( is_marked ) {
-				line.classList.add("tv-marked");
-			}
-		}
-		return line;
-	}
-
-
-	function create_line(objPtr, node_ref, is_dir, is_empty, is_folded, is_marked, prefix, caption) {
-		var symbol = get_line_symbol(is_dir, is_empty, is_folded);
-		var element = make_div(is_dir, is_marked, is_empty, prefix+symbol+caption);
-		element.onclick = function(event) { mouseclick(objPtr, node_ref, event); };
-		element.onmousemove = function(event) { mousemove(objPtr, node_ref, event); };
-		return element;
-	}
-
-
-	function passes_filter(objPtr, is_dir, caption) {
-		if ( is_dir ) return true;
-		if ( ! objPtr.filter ) return true;
-		if ( caption.toLowerCase().search(objPtr.filter) != -1 ) return true;
-		return false;
-	}
-
-
-	function append_children(objPtr, doc, node, prefix) {
-		doc.classList.add("tv-container");
-		var child_count = node.list.length;
-		var child_index = 0;
-		for ( child_index = 0; child_index < child_count; child_index++ ) {
-			var child = node.list[child_index];
-			var is_last = child_index == child_count-1;
-			var caption = child.name;
-			var is_dir = is_node_a_dir(child);
-			var is_empty = is_node_empty(child);
-			var is_folded = is_node_folded(child);
-			var is_marked = is_node_marked(child);
-			var new_prefix = prefix + (is_last ? SYMB.ELB : SYMB.TEE);
-			if ( passes_filter(objPtr, is_dir, caption) ) {
-				doc.appendChild(create_line(objPtr, child, is_dir, is_empty, is_folded, is_marked, new_prefix, caption));
-			}
-			if ( is_dir && !is_empty && !is_folded ) {
-				new_prefix = prefix + (is_last ? SYMB.WHI : SYMB.BAR);
-				append_children(objPtr, doc, child, new_prefix);
-			}
-		}
-	}
-
-
-	function rebuild_tree(objPtr, doc, nodes) {
-		/* Remove all elements but first - the filter box */
-		while ( doc.lastChild && ( doc.lastChild !== objPtr.filter_box ) ) doc.removeChild(doc.lastChild);
-		var prefix = "";
-		for ( var i=0; i<nodes.length; i++ ) {
-			var node = nodes[i];
-			var caption = node.name;
-			var is_dir = is_node_a_dir(node);
-			var is_empty = is_node_empty(node);
-			var is_folded = is_node_folded(node);
-			var is_marked = is_node_marked(node);
-			if ( passes_filter(objPtr, is_dir, caption) ) {
-				doc.appendChild(create_line(objPtr, node, is_dir, is_empty, is_folded, is_marked, prefix, caption));
-			}
-			if ( is_dir && !is_empty && !is_folded ) {
-				append_children(objPtr, doc, node, prefix);
+function mousemove(tv, node, event) {
+	if ( event.buttons == 1 ) {
+		if ( ! node_is_folder(node) ) {
+			if ( (event.movementX > 1) || (event.movementY > 1) ) {
+				node.mark = event.ctrlKey ? false : true;
+				tv.redraw();
 			}
 		}
 	}
 }
+
+
+function mouseclick(tv, node, event) {
+	if ( node_is_folder(node) ) {
+		if ( node_is_parent(node) ) {
+			node.fold = ! node.fold;
+			tv.redraw();
+		}
+	} else {
+		node.mark = ! node.mark;
+		tv.redraw();
+	}
+}
+
+
+function get_line_symbol(is_dir, has_children, is_folded) {
+	if ( is_dir )
+		if ( ! has_children )
+			return SYMBOL.EMPTY;
+		else
+			if ( is_folded )
+				return SYMBOL.EXPAND;
+			else
+				return SYMBOL.FOLD;
+	else
+		return SYMBOL.LEAF;
+}
+
+
+function make_div(is_dir, is_marked, has_children, text) {
+	var text = document.createTextNode(text);
+	var line = document.createElement("p");
+	line.appendChild(text);
+	line.classList.add("tv-line");
+	if ( is_dir ) {
+		line.classList.add("tv-folder");
+		if ( ! has_children ) line.classList.add("tv-empty");
+	} else {
+		line.classList.add("tv-file");
+		if ( is_marked ) line.classList.add("tv-marked");
+	}
+	return line;
+}
+
+
+function create_line(tv, node, prefix) {
+	var has_children = node_is_parent(node);
+	var is_folded = node_is_folded(node);
+	var is_marked = node_is_marked(node);
+	var caption = get_node_name(node);
+	var is_dir = node_is_folder(node);
+	var symbol = get_line_symbol(is_dir, has_children, is_folded);
+	var element = make_div(is_dir, is_marked, has_children, prefix+symbol+caption);
+	element.onclick = function(event) { mouseclick(tv, node, event); };
+	element.onmousemove = function(event) { mousemove(tv, node, event); };
+	return element;
+}
+
+
+function append_children(tv, div, node, prefix) {
+	var child_count = node.list.length;
+	var child_index = 0;
+	for ( child_index = 0; child_index < child_count; child_index++ ) {
+		var child = node.list[child_index];
+		var is_last = child_index == child_count-1;
+		var is_dir = node_is_folder(child);
+		var has_children = node_is_parent(child);
+		var folded = node_is_folded(child);
+		var new_prefix = prefix + (is_last ? SYMBOL.ELBOW : SYMBOL.TEE);
+		div.appendChild(create_line(tv, child, new_prefix));
+		if ( is_dir && has_children && !folded ) {
+			new_prefix = prefix + (is_last ? SYMBOL.SPACE : SYMBOL.BAR);
+			append_children(tv, div, child, new_prefix);
+		}
+	}
+}
+
+
+function rebuild_tree(tv, div, node, filter) {
+	/* Keep the root node name for later */
+	var root_node_name = get_node_name(node);
+
+	/* Remove all elements */
+	while ( div.lastChild ) div.removeChild(div.lastChild);
+
+	/* If filter, make a filtered copy of the data */
+	if ( filter ) node = filter_tree(node, filter);
+
+	if ( node ) {
+		/* Add the root node */
+		div.appendChild(create_line(tv, node, ""));
+		if ( ! node_is_folded(node) ) {
+			/* Add child nodes */
+			append_children(tv, div, node, "");
+		}
+	} else {
+		/* Add fake root node */
+		var fake_node = {
+			name: root_node_name,
+			fold: false,
+			list: [],
+		}
+		div.appendChild(create_line(tv, fake_node, ""));
+	}
+}
+
+
+function filter_tree(node, filter) {
+	if ( node && node.list ) {
+		if ( node.list.length > 0 ) {
+			/* We want brand new folder nodes */
+			var result = {
+				name: node.name,
+				fold: false,
+				list: [],
+			}
+			for ( var i=0; i<node.list.length; i++ ) {
+				var child = node.list[i];
+				/* Filter may return old leaf or new folder */
+				var old_or_new = filter_tree(child, filter);
+				if ( old_or_new ) {
+					result.list.push(old_or_new);
+				}
+			}
+			if ( result.list.length > 0 ) {
+				return result;
+			}
+		}
+	} else if ( node && node.name ) {
+		if ( node.name.search(filter) != -1 ) {
+			/* We want original leaf nodes */
+			return node
+		}
+	}
+	return null;
+}
+
