@@ -53,22 +53,11 @@ function Treeview(body_element) {
 }
 
 
-function node_is_leaf(node) { return node && node.name && ( ! node.list ); }
 function get_node_name(node) { return node && node.name ? node.name : "<undefined>"; }
 function node_is_marked(node) { return node && node.mark; }
 function node_is_folder(node) { return node && node.list ? true : false; }
 function node_is_folded(node) { return node && node.fold; }
 function node_is_parent(node) { return node && node.list && (node.list.length > 0); }
-
-
-function get_subnode(node, idx) {
-	if ( node.list ) {
-		if ( -1 < idx < node.list.length ) {
-			return node.list[idx];
-		}
-	}
-	return null;
-}
 
 
 function mousemove(tv, node, event) {
@@ -146,14 +135,9 @@ function append_children(tv, div, node, prefix) {
 	for ( child_index = 0; child_index < child_count; child_index++ ) {
 		var child = node.list[child_index];
 		var is_last = child_index == child_count-1;
-		var is_dir = node_is_folder(child);
-		var has_children = node_is_parent(child);
-		var folded = node_is_folded(child);
-		var new_prefix = prefix + (is_last ? SYMBOL.ELBOW : SYMBOL.TEE);
-		div.appendChild(create_line(tv, child, new_prefix));
-		if ( is_dir && has_children && !folded ) {
-			new_prefix = prefix + (is_last ? SYMBOL.SPACE : SYMBOL.BAR);
-			append_children(tv, div, child, new_prefix);
+		div.appendChild(create_line(tv, child, prefix + (is_last ? SYMBOL.ELBOW : SYMBOL.TEE)));
+		if ( node_is_folder(child) && node_is_parent(child) && ! node_is_folded(child) ) {
+			append_children(tv, div, child, prefix + (is_last ? SYMBOL.SPACE : SYMBOL.BAR));
 		}
 	}
 }
